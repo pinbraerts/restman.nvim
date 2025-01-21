@@ -55,14 +55,17 @@ function M.on_exit(result)
     })
     conform.format({
       bufnr = stderr_buffer,
-      async = true,
+      async = false,
     })
   end
-  api.nvim_open_win(stderr_buffer, true, {
+
+  api.nvim_open_win(stdout_buffer, true, {
     split = "right",
   })
-  api.nvim_open_win(stdout_buffer, true, {
-    split = "above",
+  local height = api.nvim_buf_line_count(stderr_buffer)
+  api.nvim_open_win(stderr_buffer, false, {
+    split = "below",
+    height = height,
   })
 end
 
