@@ -40,12 +40,13 @@ function M.on_exit(result)
     )
   end
   api.nvim_buf_set_lines(stdout_buffer, -2, -1, false, stdout)
+
   local content_type = stderr["Content-Type"] or ""
-  if content_type:match("application/json") then
-    vim.bo[stdout_buffer].ft = "json"
-  elseif content_type:match("application/html") then
-    vim.bo[stdout_buffer].ft = "html"
+  local type = content_type:match("^application/(%w+)")
+  if type then
+    vim.bo[stdout_buffer].ft = type
   end
+
   local ok, conform = pcall(require, "conform")
   if ok then
     conform.format({
