@@ -59,13 +59,32 @@ function M.on_exit(result)
     })
   end
 
-  api.nvim_open_win(stdout_buffer, true, {
+  local stdout_window = api.nvim_open_win(stdout_buffer, true, {
     split = "right",
   })
   local height = api.nvim_buf_line_count(stderr_buffer)
-  api.nvim_open_win(stderr_buffer, false, {
+  local stderr_window = api.nvim_open_win(stderr_buffer, false, {
     split = "below",
     height = height,
+  })
+
+  local function delete_buffers()
+    if api.nvim_buf_is_valid(stderr_buffer) then
+      api.nvim_buf_delete(stderr_buffer, { force = true })
+    end
+    if api.nvim_buf_is_valid(stdout_buffer) then
+      api.nvim_buf_delete(stdout_buffer, { force = true })
+    end
+  end
+
+  api.nvim_create_autocmd("WinClosed", {
+    pattern = tostring(stderr_window),
+    callback = delete_buffers,
+  })
+
+  api.nvim_create_autocmd("WinClosed", {
+    pattern = tostring(stdout_window),
+    callback = delete_buffers,
   })
 end
 
