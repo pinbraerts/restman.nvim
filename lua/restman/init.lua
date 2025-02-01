@@ -5,8 +5,11 @@ M.namespace = vim.api.nvim_create_namespace("ExecuteParagraph")
 
 function M.parse_stderr(lines)
   local headers = {}
+  local out_lines = {}
   for _, line in ipairs(lines) do
-    if line:match("^%< ") then
+    local match = line:match("^%< (.*)")
+    if match then
+      match = vim.trim(match)
       if line:match(":") then
         local split = vim.split(line, ":")
         local name, value = split[1], split[2]
@@ -17,19 +20,22 @@ function M.parse_stderr(lines)
       local _, code, message = vim.split(line, " ")
       headers.code = code
       headers.message = message
+      if match:len() > 0 then
+        table.insert(out_lines, match)
+      end
     end
   end
-  return headers
+  return headers, out_lines
 end
 
 --- @param result vim.SystemCompleted
 function M.on_exit(result)
   local stdout_buffer = api.nvim_create_buf(false, true)
   local stderr_buffer = api.nvim_create_buf(false, true)
-  local stderr = M.parse_stderr(vim.split(result.stderr or "", "\n"))
+  local stderr_json, stderr_lines = M.parse_stderr(vim.split(result.stderr or "", "\n"))
   local stdout = vim.split(result.stdout or "", "\n")
-  api.nvim_buf_set_lines(stderr_buffer, -2, -1, false, vim.split(vim.json.encode(stderr), "\n"))
-  vim.bo[stderr_buffer].ft = "json"
+  api.nvim_buf_set_lines(stderr_buffer, -2, -1, false, stderr_lines)
+  vim.bo[stderr_buffer].ft = "http"
   if result.code ~= 0 then
     api.nvim_buf_set_lines(
       stderr_buffer,
@@ -41,7 +47,7 @@ function M.on_exit(result)
   end
   api.nvim_buf_set_lines(stdout_buffer, -2, -1, false, stdout)
 
-  local content_type = stderr["Content-Type"] or ""
+  local content_type = stderr_json["Content-Type"] or ""
   local type = content_type:match("^application/(%w+)")
   if type then
     vim.bo[stdout_buffer].ft = type
@@ -52,10 +58,6 @@ function M.on_exit(result)
     conform.format({
       bufnr = stdout_buffer,
       async = true,
-    })
-    conform.format({
-      bufnr = stderr_buffer,
-      async = false,
     })
   end
 
@@ -77,9 +79,16 @@ function M.on_exit(result)
     end
   end
 
-  api.nvim_create_autocmd("WinClosed", {
-    pattern = tostring(stderr_window),
-    callback = delete_buffers,
+  api.nvim_create_autocmd({ "WinResized", "WinScrolled" }, {
+    callback = function()
+      if not api.nvim_buf_is_valid(stderr_buffer) then
+        return
+      end
+      if not api.nvim_win_is_valid(stderr_window) then
+        return
+      end
+      api.nvim_win_set_height(stderr_window, api.nvim_buf_line_count(stderr_buffer))
+    end,
   })
 
   api.nvim_create_autocmd("WinClosed", {
