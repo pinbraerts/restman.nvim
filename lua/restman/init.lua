@@ -120,7 +120,7 @@ function M.execute_paragraph(window)
   end
   vim.highlight.range(buffer, M.namespace, "IncSearch", { start_index, 0 }, { end_index, -1 })
   vim.defer_fn(function()
-    api.nvim_buf_clear_highlight(buffer, M.namespace, start_index, end_index)
+    api.nvim_buf_clear_namespace(buffer, M.namespace, start_index, end_index)
   end, 100)
   local lines = api.nvim_buf_get_lines(buffer, start_index, end_index, false)
   lines = vim.tbl_filter(function(line)
