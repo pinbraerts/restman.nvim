@@ -123,9 +123,14 @@ function M.execute_paragraph(window)
     api.nvim_buf_clear_namespace(buffer, M.namespace, start_index, end_index)
   end, 100)
   local lines = api.nvim_buf_get_lines(buffer, start_index, end_index, false)
-  lines = vim.tbl_filter(function(line)
-    return line:match("^%s*#") == nil
-  end, lines)
+  lines = vim.tbl_filter(
+    function(line)
+      return line ~= nil and line:match("^%s*$") == nil
+    end,
+    vim.tbl_map(function(line)
+      return line:match("^[^#]*")
+    end, lines)
+  )
   -- M.on_exit({
   --   code = 0,
   --   stdout = vim.iter(lines):join("\n"),
