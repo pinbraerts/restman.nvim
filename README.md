@@ -19,7 +19,11 @@ be a json output, formats it and sets the filetype to the buffer
 - Semicolon can't be used in a request for now since the paragraph is passed into `stdin` of `/bin/sh`
 - Requires headers to operate. The plugin decides if `stdout` is `JSON` if there is `content-type: application/json` response header in the `stderr`
 
-## 👀 Alternatives
+## 👀 Demonstration
+
+![restman](https://github.com/user-attachments/assets/43c761ac-2935-4637-88a0-d821a7d62f59)
+
+## 🔍 Alternatives
 
 - https://github.com/michaelb/sniprun
 - https://github.com/rest-nvim/rest.nvim
