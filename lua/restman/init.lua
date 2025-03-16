@@ -28,10 +28,18 @@ function M.parse_stderr(lines)
   return headers, out_lines
 end
 
+local function create_scratch_buffer()
+  local buffer = api.nvim_create_buf(false, true)
+  vim.bo[buffer].buftype = "nofile"
+  vim.bo[buffer].swapfile = false
+  vim.bo[buffer].bufhidden = "wipe"
+  return buffer
+end
+
 --- @param result vim.SystemCompleted
 function M.on_exit(result)
-  local stdout_buffer = api.nvim_create_buf(false, true)
-  local stderr_buffer = api.nvim_create_buf(false, true)
+  local stdout_buffer = create_scratch_buffer()
+  local stderr_buffer = create_scratch_buffer()
   local stderr_json, stderr_lines = M.parse_stderr(vim.split(result.stderr or "", "\n"))
   local stdout = vim.split(result.stdout or "", "\n")
   api.nvim_buf_set_lines(stderr_buffer, -2, -1, false, stderr_lines)
