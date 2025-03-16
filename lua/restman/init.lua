@@ -136,11 +136,11 @@ function M.execute_paragraph(window)
       return line ~= nil and line:match("^%s*$") == nil
     end,
     vim.tbl_map(function(line)
-      line = line:match("^[^#]*")
-      if line:match("\\%s*$") then
-        return line
+      local stripped = line:match("^[^#]*")
+      if line:match("\\%s*$") and not stripped:match("\\%s*$") then
+        return stripped .. "\\"
       end
-      return line .. "\\"
+      return stripped
     end, lines)
   )
   -- M.on_exit({
