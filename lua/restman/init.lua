@@ -15,7 +15,7 @@ function M.parse_stderr(lines)
         local name, value = split[1], split[2]
         name = vim.trim(name:sub(3))
         value = vim.trim(value)
-        headers[name] = value
+        headers[name:lower()] = value
       end
       local _, code, message = vim.split(line, " ")
       headers.code = code
@@ -55,7 +55,7 @@ function M.on_exit(result)
   end
   api.nvim_buf_set_lines(stdout_buffer, -2, -1, false, stdout)
 
-  local content_type = stderr_json["Content-Type"] or ""
+  local content_type = stderr_json["content-type"] or ""
   local type = content_type:match("^application/(%w+)")
   if type then
     vim.bo[stdout_buffer].ft = type
